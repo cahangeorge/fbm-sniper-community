@@ -1,117 +1,168 @@
-# FBM Sniper — Community Edition
+# FBM Sniper Community
 
-An open-source desktop sniper for Facebook Marketplace. Scans in the background, scores listings against your rules, and shows the winners in a local dashboard.
+An open-source desktop marketplace sniper that now ships with:
 
-**This is the free edition.** It's fully functional for the core use case — scan, score, surface deals — and shares its data format with FBM Sniper Pro so you can upgrade later without losing anything.
+- Cars on Facebook Marketplace
+- Facebook electronics sniper
+- Wallapop electronics sniper
+- Vinted electronics sniper
+- Optional Discord deal routing
 
-## What you get
+Everything runs locally on your machine.
 
-- Headless Puppeteer scanner that pulls listings from Facebook Marketplace
-- Local Electron dashboard (no cloud, no account — everything stays on your machine)
-- Rules-based scoring: price band, keyword allow/deny lists, mileage, title status
-- NHTSA VIN decoder + recall check (free public API)
-- Per-target groups, filters, found/rejected history
-- Click any listing to jump straight to the FB Marketplace page
+## Join the Discord
 
-## What's different from Pro
+If you want setup help, examples, and a place to share flips, jump into the community Discord:
 
-| Feature                        | Community | Pro |
-| ------------------------------ | :-------: | :-: |
-| FB Marketplace scanner         | ✅ | ✅ |
-| Local dashboard                | ✅ | ✅ |
-| Rules-based scoring            | ✅ | ✅ |
-| NHTSA VIN + recall check       | ✅ | ✅ |
-| Max active targets             | 3 | ∞ |
-| Minimum scan interval          | 3 min | 30 sec |
-| AI photo grading (Gemini)      | — | ✅ |
-| AI target generator (describe → schema) | — | ✅ |
-| Telegram / Discord alerts      | — | ✅ |
-| Preset target library          | — | ✅ |
+**→ [Discord / Whop Join Link](https://whop.com/fbmsniper/fbm-sniper-community-free-marketplace-sniper-bot/)**
 
-The community edition has the limits hardcoded. When you're ready for more, [upgrade to Pro](https://gumroad.com/).
 
-## Quick start
+## What v2 adds
+
+- New shared multi-platform watchlist for Facebook, Wallapop, and Vinted
+- Dedicated tabs for `Facebook`, `Wallapop`, and `Vinted`
+- Shared settings for Discord webhooks, bot toggles, poll intervals, and Vinted cookie input
+- **Worldwide Vinted support** — pick your country (US, UK, FR, DE, IT, NL, PL, PT, etc.) and the bot hits the right domain
+- **Location is now user-configurable** — no more Spain-only defaults; set your own city + coordinates in Settings
+- Discord alerts routed to `All`, `Buy Now`, and `Maybe` webhooks
+- Discord alerts are optional; the app still runs normally without any webhook configured
+
+## Supported bots
+
+| Bot | Purpose |
+| --- | --- |
+| Cars | Original Facebook Marketplace car scanner |
+| Facebook | Electronics sniper driven by the shared watchlist |
+| Wallapop | Electronics sniper with shared watchlist + rate-limit backoff |
+| Vinted | Electronics sniper with fee-aware ceilings and cookie refresh |
+
+## Download & install
+
+Grab the latest release from the [Releases page](https://github.com/ethanashi/fbm-sniper-community/releases):
+
+| Platform | File |
+| --- | --- |
+| macOS (Apple Silicon) | `FBM.Sniper.Community-2.0.4-arm64.dmg` |
+| macOS (Intel) | `FBM.Sniper.Community-2.0.4.dmg` |
+| Windows (x64) | `FBM.Sniper.Community.Setup.2.0.4.exe` |
+
+### macOS "app is damaged" warning
+
+The app is unsigned, so Gatekeeper may block it the first time. If that happens, run:
 
 ```bash
-git clone <this-repo> fbm-sniper
+xattr -cr "/Applications/FBM Sniper Community.app"
+```
+
+Then open it again.
+
+### Windows SmartScreen warning
+
+The Windows build is unsigned, so SmartScreen may show a warning. Click **More info** and then **Run anyway**.
+
+## First launch
+
+1. Open the app.
+2. **Review your location** in the `Settings` tab. Dallas, TX is only the starter location; change it to your real search city, or save it to confirm Dallas. The banner stays up until this is done.
+3. If you plan to use the `Vinted` bot, pick your country from the **Vinted Country** dropdown in Settings (or in the Vinted tab's inline settings strip).
+4. Log into Facebook in the browser window if you plan to use the `Cars` or `Facebook` bot.
+5. Review the shared watchlist, bot toggles, and polling intervals.
+6. Add Discord webhook URLs only if you want alerts. They are optional.
+7. Start the bot you want from its tab.
+
+## Discord webhooks
+
+Discord notifications are controlled from the `Settings` tab:
+
+- `All Webhook`: every graded deal
+- `Buy Now Webhook`: grades `A` and `B`
+- `Maybe Webhook`: grades `C` and `D`
+
+Leaving all three blank disables Discord delivery without affecting the snipers.
+
+## Vinted country + cookie setup
+
+Vinted runs a separate site per country (`www.vinted.es`, `.fr`, `.de`, `.co.uk`, `.com`, etc.). The Vinted bot won't start until you pick your country from the dropdown in `Settings → Vinted`. Supported countries: United States, Spain, France, Germany, United Kingdom, Italy, Netherlands, Belgium, Poland, Czechia, Slovakia, Austria, Portugal, Luxembourg, Lithuania, Finland, Sweden, Denmark, Hungary, Croatia, Greece, Romania, Ireland.
+
+A manual cookie is optional — the bot auto-fetches one from whatever country you pick. If you want to supply your own (stronger bypass), the value must include `access_token_web=...` **from the same Vinted country domain you selected**.
+
+Quick way to get it:
+
+1. Log in to your country's Vinted site (e.g. `www.vinted.fr`).
+2. Open your browser devtools.
+3. Find the request cookies for that domain, or inspect the site cookies under Application/Storage.
+4. Copy the cookie string that contains `access_token_web=...`.
+5. Paste it into the Vinted cookie field in `Settings`, or export it as `VINTED_COOKIE`.
+
+If you do nothing, the bot still attempts automatic cookie refresh on its own.
+
+## Environment variables
+
+Reference values live in [.env.example](.env.example).
+
+Most users can configure everything from the UI. The environment variables are mainly useful for CLI runs, custom launchers, and packaging environments:
+
+- `VINTED_COOKIE`
+- `VINTED_PROXY`
+- `PROXY_ENABLED`
+- `PROXY_HOST`
+- `PROXY_PORT`
+- `PROXY_USER`
+- `PROXY_PASS`
+
+## Developer setup
+
+Requires Node.js 18+ and git.
+
+```bash
+git clone https://github.com/ethanashi/fbm-sniper-community fbm-sniper
 cd fbm-sniper
 npm install
-npm run seed        # writes starter watchlist + sample data to data/
-npm run desktop     # launches the Electron dashboard
+npm run seed
+npm run desktop
 ```
 
-First time running, log into Facebook in the Puppeteer window it opens so the scanner can pull listings.
+Useful commands:
 
-If you prefer the CLI:
 ```bash
-npm run scan        # continuous scan loop
-npm run scan:test   # one-shot test scan, then exit
+npm run ui
+npm run scan
+npm run scan:test
+npm run check
 ```
 
-## Configuring targets
+Build desktop installers:
 
-Targets live in [`data/watchlist.json`](data/watchlist.json). You can edit the JSON directly or use the **Add Target** drawer in the dashboard. Each target looks like:
-
-```json
-{
-  "id": "honda-civic-2016-2021",
-  "label": "Honda Civic 2016-2021",
-  "group": "Reliable Sedans",
-  "enabled": true,
-  "make": "Honda",
-  "model": "Civic",
-  "query": "Honda Civic",
-  "yearStart": 2016,
-  "yearEnd": 2021,
-  "minPrice": 5000,
-  "maxPrice": 18000,
-  "radiusKM": 120,
-  "allowShipping": false,
-  "retailBase": 14500,
-  "baselineYear": 2019,
-  "yearlyAdjustment": 900,
-  "baselineMiles": 85000,
-  "mileagePenaltyPer10k": 450,
-  "maxMileage": 145000,
-  "feesReserve": 650,
-  "reconBase": 900,
-  "marginFloor": 2200,
-  "mustInclude": [],
-  "mustAvoid": ["salvage", "flood", "frame damage", "parts only"],
-  "trimBoostKeywords": ["touring", "si"]
-}
+```bash
+npm run build:all
 ```
 
-Community edition enforces **max 3 enabled targets** at a time. Disable one to enable another.
+On Apple Silicon Macs, install `makensis` first if you want the local Windows build:
 
-## Proxies
+```bash
+brew install makensis
+```
 
-FB will rate-limit a raw residential IP fast. Add a proxy URL (or a pool) in Settings → Quick Settings. Any proxy that accepts `http://user:pass@host:port` works.
+## Data layout
 
-## How scoring works
+Runtime files are written under `data/`:
 
-1. Target rules filter by keyword, price, title, mileage.
-2. Rules engine estimates retail from `retailBase` + year/mileage adjustments.
-3. NHTSA VIN decode + recall check (if VIN is in the listing).
-4. Verdict: `buy_now`, `maybe`, or `pass` based on the margin floor.
-
-The photo-grading hook is stubbed in this edition — listings come back as `ungraded` with a "needs manual review" flag. Pro ships a Gemini-vision grader that scores exterior/interior condition from the listing photos.
+- `data/config.json`, `data/watchlist.json`, `data/found_listings.ndjson`, `data/rejected_listings.csv`, and `data/seen_ids.json` for the original Cars bot
+- `data/shared-marketplace/config.json` and `data/shared-marketplace/watchlist.json` for the shared electronics bots
+- `data/facebook/found.ndjson`, `data/wallapop/found.ndjson`, and `data/vinted/found.ndjson` for discovered deals
 
 ## Project layout
 
-```
-lib/          # scanner + core logic (ESM)
-server.cjs    # Express + WebSocket backend for the UI
-electron.cjs  # Electron shell
-ui/           # Static dashboard (HTML/CSS/JS)
-data/         # Runtime data: watchlist.json, config.json, found/rejected logs
-config/       # (reserved for future config presets)
+```text
+lib/          scanner + marketplace snipers (ESM)
+server.cjs    Express + WebSocket backend for the UI
+electron.cjs  Electron shell
+ui/           Static dashboard (HTML/CSS/JS)
+data/         Runtime data
+build/        electron-builder hooks and local packaging helpers
+docs/         Specs, plans, and guides
 ```
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Fork it, extend it, ship it.
-
-## Upgrading to Pro
-
-[Get FBM Sniper Pro on Gumroad](https://gumroad.com/) — one-time purchase, ships as a signed .exe/.dmg. Your community-edition `data/` folder drops straight in.
+MIT — see [LICENSE](LICENSE).
